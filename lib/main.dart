@@ -96,8 +96,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final isLanscapeMode =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+    final mediaquery = MediaQuery.of(context);
+    final isLanscapeMode = mediaquery.orientation == Orientation.landscape;
     final appBar = AppBar(
       title: Text(
         'Personal Expenses',
@@ -116,11 +116,50 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     final txListWidget = Container(
-        height: (MediaQuery.of(context).size.height -
+        height: (mediaquery.size.height -
                 appBar.preferredSize.height -
-                MediaQuery.of(context).padding.top) *
+                mediaquery.padding.top) *
             0.7,
         child: TransactionList(_userTransactions, _deleteTransaction));
+
+    List<Widget> _buildLanscape() {
+      return [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Show Chart'),
+            Switch(
+                value: _showChart,
+                onChanged: (value) {
+                  setState(() {
+                    _showChart = value;
+                  });
+                })
+          ],
+        ),
+        _showChart
+            ? Container(
+                height: (mediaquery.size.height -
+                        appBar.preferredSize.height -
+                        mediaquery.padding.top) *
+                    0.7,
+                child: Chart(_recentTransaction))
+            : txListWidget
+      ];
+    }
+
+    List<Widget> _buildPortrait() {
+      return [
+        Container(
+            height: (mediaquery.size.height -
+                    appBar.preferredSize.height -
+                    mediaquery.padding.top) *
+                0.3,
+            child: Chart(_recentTransaction)),
+        txListWidget
+      ];
+    }
+
     return Scaffold(
       appBar: appBar,
       body: SingleChildScrollView(
@@ -128,37 +167,8 @@ class _MyHomePageState extends State<MyHomePage> {
           //mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (isLanscapeMode)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Show Chart'),
-                  Switch(
-                      value: _showChart,
-                      onChanged: (value) {
-                        setState(() {
-                          _showChart = value;
-                        });
-                      })
-                ],
-              ),
-            if (!isLanscapeMode)
-              Container(
-                  height: (MediaQuery.of(context).size.height -
-                          appBar.preferredSize.height -
-                          MediaQuery.of(context).padding.top) *
-                      0.3,
-                  child: Chart(_recentTransaction)),
-            if (!isLanscapeMode) txListWidget,
-            if (isLanscapeMode)
-              _showChart
-                  ? Container(
-                      height: (MediaQuery.of(context).size.height -
-                              appBar.preferredSize.height -
-                              MediaQuery.of(context).padding.top) *
-                          0.7,
-                      child: Chart(_recentTransaction))
-                  : txListWidget,
+            if (isLanscapeMode) ..._buildLanscape(),
+            if (!isLanscapeMode) ..._buildPortrait(),
           ],
         ),
       ),
